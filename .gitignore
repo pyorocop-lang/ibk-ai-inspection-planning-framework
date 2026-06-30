@@ -1,0 +1,10 @@
+.vscode/
+node_modules/
+.env
+*.log
+*.tmp
+*.bak
+.DS_Store
+outputs/
+__pycache__/
+*.pyc
