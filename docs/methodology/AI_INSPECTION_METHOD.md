@@ -1,110 +1,683 @@
-# AI 검사기획 방법론 (AI Inspection Method)
-
-> 검사부문 후보를 **위험 신호 → 매핑 → 스코어링 → 랭킹 → 설명 → 사람검증**의
-> 표준 절차로 처리하여, 설명가능한 검사부문 **추천**을 산출하는 방법론이다.
+# AI_INSPECTION_METHOD.md
+Version : 1.0
+Purpose : AI 기반 은행 검사부문 선정 분석방법론
 
 ---
 
-## 1. Purpose (목적)
-검사부문 선정을 위한 AI의 처리 절차를 표준화하여 **일관성·재현성·설명가능성**을 확보한다.
+# 1. 목적 (Purpose)
 
-## 2. Scope (범위)
-검사 유니버스 정의부터 추천 출력까지의 분석 파이프라인. 최종 결정은 본 문서 범위 밖(검사협의회).
+본 문서는 AI가 은행의 연간 검사계획을 수립하기 위하여
+검사부문을 객관적이고 설명가능한 방식(Explainable AI)으로
+선정하기 위한 표준 분석방법론을 정의한다.
 
-## 3. Input (입력)
-- 검사 유니버스(`knowledge/inspection_universe/`)
-- 리스크 분류체계(`knowledge/risk_taxonomy/`)
-- 정량 데이터·규정·사례(`knowledge/`)
-- 가중치·스코어링 모델(`models/`)
+AI는 단순히 위험이 높다고 판단해서는 안 되며,
+모든 추천은 데이터와 근거(Evidence)에 기반해야 한다.
 
-## 4. Process (처리)
+본 방법론은
 
-```mermaid
-flowchart LR
-    U[Inspection Universe] --> S[Risk Signal]
-    S --> M[Risk Mapping]
-    M --> SC[Risk Scoring]
-    SC --> W[Weight 적용]
-    W --> R[Ranking]
-    R --> X[Explainable AI]
-    X --> H[Human Review]
-```
+- Risk-Based Inspection
+- Evidence-Based Decision
+- Explainable AI (XAI)
+- Human-in-the-loop
 
-### 4.1 Inspection Universe (검사 유니버스)
-- 검사 가능한 모든 부문·업무·프로세스를 구조화한 모집단.
-- 각 단위는 고유 ID·소관부서·관련 규정·통제와 연결.
+원칙을 따른다.
 
-### 4.2 Risk Signal (위험 신호)
-- 데이터·규제·사건사고에서 위험을 시사하는 신호를 추출.
-- 예: 민원 급증, 사고금액, 규정 변경, 직전 검사 경과기간.
+---
 
-### 4.3 Risk Mapping (리스크 매핑)
-- 위험 신호를 검사 유니버스 단위 및 리스크 분류체계에 연결.
-- 하나의 신호가 복수 부문에 매핑될 수 있음(다대다).
+# 2. 분석 원칙
 
-### 4.4 Risk Scoring (리스크 스코어링)
-- 매핑된 신호를 정량 점수화. 차원 예시:
+AI는 다음 원칙을 반드시 준수한다.
 
-| 차원 | 설명 |
-|------|------|
-| Likelihood | 위험 발생 가능성 |
-| Impact | 영향(재무·평판·규제) |
-| Velocity | 위험 변화 속도/긴급성 |
-| Control Gap | 통제 취약도 |
-| Supervisory | 감독 관심도 |
+① 객관성(Objectivity)
 
-### 4.5 Weight (가중치)
-- 각 차원·신호에 가중치 부여. 가중치는 `models/scoring/`에 명시·버전관리.
-- 가중치 변경은 사유와 함께 기록(설명가능성·재현성 보장).
+모든 판단은 데이터 기반이어야 한다.
 
-### 4.6 Ranking (랭킹)
-- 가중 점수 합산으로 검사부문 후보를 우선순위화.
-- 동점·근소차는 신뢰도·반론과 함께 표기.
+② 설명가능성(Explainability)
 
-### 4.7 Explainable AI (설명가능성)
-- 각 후보의 점수가 **어떤 근거로 산출되었는지** 분해하여 제시.
-- 근거 → 차원 → 가중치 → 점수의 추적 경로 제공.
+모든 추천에는 반드시 선정근거를 제시한다.
 
-### 4.8 Confidence (신뢰도)
-- 근거의 양·질·일관성에 기반해 신뢰도(상/중/하)를 부여.
-- 데이터 부족·상충 시 신뢰도를 낮추고 사유 명시.
+③ 반복가능성(Repeatability)
 
-### 4.9 Alternative (대안)
-- 단일 추천에 그치지 않고 대안 시나리오(병합·범위 조정·시기 조정)를 제시.
+동일한 데이터를 입력하면 동일한 결과를 생성해야 한다.
 
-### 4.10 Counter Argument (반론)
-- 추천에 반대되는 근거를 의무적으로 제시(편향 방지).
+④ 감사가능성(Auditability)
 
-### 4.11 Human Review (사람 검증)
-- 산출물은 1차 검토자·검사협의회의 검증을 거친다.
+모든 결과는 추적 가능해야 한다.
 
-### 4.12 Output Format (출력 형식)
-- 후보별 표준 카드: `부문 / 순위 / 점수 / 핵심근거 / 신뢰도 / 반론 / 대안`.
+⑤ 보수성(Conservatism)
 
-## 5. Output (출력)
-- 검사부문 추천 순위표(랭킹) + 후보별 설명 카드 + 신뢰도/반론/대안.
-- 산출물 위치: `outputs/ranking/`, `outputs/reports/`.
+충분한 Evidence가 없는 경우 추천하지 않는다.
 
-## 6. Explainability Requirement (설명가능성 요건)
-- 점수 분해(근거→차원→가중치→점수)가 모든 후보에 대해 제시되어야 한다.
-- 동일 입력에 대해 동일 출력이 재현되어야 한다.
+---
 
-## 7. Human Review (사람의 검증)
-- 1차 검토자: 근거·점수 분해 검증. 검사협의회: 최종 결정.
+# 3. 전체 분석 프로세스
 
-## 8. Example (예시)
+STEP 1
+Inspection Universe 구축
 
-| 순위 | 부문 | 점수 | 핵심 근거 | 신뢰도 | 반론 |
-|------|------|------|-----------|--------|------|
-| 1 | 여신 사후관리 | 8.4 | 민원↑·규정변경·검사경과 | 中 | 사고금액↓ |
-| 2 | 자산건전성 | 7.1 | 연체율↑·동종사고 | 中 | 자본비율 양호 |
+↓
 
-> 위 표는 **추천**이며, 최종 검사부문은 검사협의회가 결정한다.
+STEP 2
+Risk Signal 수집
 
-## 9. File Owner (문서 소유자)
-검사기획 AI 운영 담당 (Inspection Planning AI Steward)
+↓
 
-## 10. Version History (변경 이력)
-| 버전 | 일자 | 변경 내용 | 작성 |
-|------|------|-----------|------|
-| v0.1 | 2026-06-30 | 초안 작성 | AI Steward |
+STEP 3
+Risk Mapping
+
+↓
+
+STEP 4
+Risk Scoring
+
+↓
+
+STEP 5
+Weight 적용
+
+↓
+
+STEP 6
+Ranking 생성
+
+↓
+
+STEP 7
+Explainable Reason 생성
+
+↓
+
+STEP 8
+Alternative 생성
+
+↓
+
+STEP 9
+Confidence 계산
+
+↓
+
+STEP 10
+검사협의회 제출
+
+---
+
+# 4. Inspection Universe
+
+AI는 검사대상을 먼저 정의한다.
+
+예)
+
+기업여신
+
+PF
+
+가계여신
+
+외환
+
+AML
+
+시장리스크
+
+유동성
+
+IT
+
+정보보호
+
+AI
+
+소비자보호
+
+내부통제
+
+책무구조도
+
+신탁
+
+파생상품
+
+ESG
+
+해외점포
+
+신사업
+
+...
+
+Universe는 Level1
+Level2
+Level3 구조를 가진다.
+
+예)
+
+Level1
+기업여신
+
+↓
+
+Level2
+PF
+
+↓
+
+Level3
+브릿지론
+
+---
+
+# 5. Risk Signal 수집
+
+AI는 아래 데이터를 모두 수집한다.
+
+## 감독정보
+
+금감원 검사
+
+제재
+
+경영유의
+
+금융위
+
+입법예고
+
+감독규정
+
+검사매뉴얼
+
+---
+
+## 내부정보
+
+내부감사
+
+감사결과
+
+KRI
+
+RCSA
+
+Loss Event
+
+사고
+
+Near Miss
+
+민원
+
+징계
+
+---
+
+## 외부환경
+
+금리
+
+부동산
+
+환율
+
+경기
+
+AI
+
+사이버
+
+국제제재
+
+거시경제
+
+---
+
+## 경영정보
+
+CEO 전략
+
+신사업
+
+디지털 전략
+
+신상품
+
+조직개편
+
+---
+
+# 6. Risk Mapping
+
+AI는 모든 Signal을 Universe에 연결한다.
+
+예)
+
+부당대출
+
+↓
+
+기업여신
+
+PF
+
+내부통제
+
+------------------
+
+민원 증가
+
+↓
+
+소비자보호
+
+------------------
+
+랜섬웨어
+
+↓
+
+정보보호
+
+IT
+
+---
+
+# 7. Risk Scoring
+
+AI는 아래 항목을 각각 평가한다.
+
+Occurrence
+
+최근 발생빈도
+
+Impact
+
+재무영향
+
+Trend
+
+증가추세
+
+Control Weakness
+
+내부통제 취약
+
+Regulatory Focus
+
+감독관심
+
+Emerging Risk
+
+신규위험
+
+Strategic Importance
+
+전략 중요성
+
+---
+
+# 8. Weight
+
+기본 Weight
+
+Occurrence
+20
+
+Impact
+20
+
+Control
+20
+
+Regulation
+15
+
+Trend
+10
+
+Emerging
+10
+
+Strategy
+5
+
+총점
+100
+
+---
+
+# 9. Risk Score 계산
+
+Inspection Score
+
+=
+
+Occurrence × 20%
+
++
+
+Impact × 20%
+
++
+
+Control × 20%
+
++
+
+Regulation × 15%
+
++
+
+Trend × 10%
+
++
+
+Emerging × 10%
+
++
+
+Strategy × 5%
+
+---
+
+# 10. Ranking
+
+AI는 Universe 전체를 Ranking 한다.
+
+예)
+
+1
+기업여신
+
+92
+
+2
+AML
+
+90
+
+3
+정보보호
+
+88
+
+4
+소비자보호
+
+86
+
+5
+외환
+
+84
+
+---
+
+# 11. Explainable AI
+
+AI는 반드시 추천사유를 생성한다.
+
+예)
+
+기업여신
+
+Score
+
+92
+
+선정사유
+
+① 최근 부당대출 사고 증가
+
+② PF 익스포저 증가
+
+③ 충당금 증가
+
+④ 감독당국 검사 중점
+
+⑤ 내부감사 반복 지적
+
+⑥ KRI Warning
+
+---
+
+# 12. Evidence
+
+모든 추천은 근거를 가진다.
+
+Evidence 예시
+
+금감원 제재
+
+검사결과
+
+법령
+
+민원
+
+내부감사
+
+손실자료
+
+사고자료
+
+KRI
+
+RCSA
+
+Loss Event
+
+---
+
+# 13. Confidence
+
+AI는 Confidence를 계산한다.
+
+High
+
+95~100
+
+Medium
+
+80~94
+
+Low
+
+79 이하
+
+Confidence가 낮으면
+
+추가 검토 필요
+
+문구를 생성한다.
+
+---
+
+# 14. Alternative
+
+AI는 항상 대안을 제시한다.
+
+예)
+
+1순위
+
+기업여신
+
+92
+
+2순위
+
+AML
+
+90
+
+3순위
+
+정보보호
+
+88
+
+---
+
+# 15. Counter Argument
+
+AI는 반드시 반론을 작성한다.
+
+예)
+
+기업여신 대신 AML을 우선 검사해야 한다는 의견
+
+근거
+
+국제 AML 규제 강화
+
+해외제재 증가
+
+신규 FATF 권고사항
+
+---
+
+# 16. Recommendation
+
+최종 추천
+
+Priority
+
+Critical
+
+High
+
+Medium
+
+Low
+
+검사형태
+
+정기검사
+
+수시검사
+
+테마검사
+
+특별검사
+
+Follow-up 검사
+
+---
+
+# 17. Human Review
+
+AI는 추천만 수행한다.
+
+최종결정은
+
+검사기획
+
+↓
+
+리스크관리
+
+↓
+
+준법감시
+
+↓
+
+내부감사
+
+↓
+
+검사협의회
+
+↓
+
+최종 승인
+
+---
+
+# 18. Learning
+
+검사 종료 후
+
+AI는
+
+실제 검사결과와
+
+추천결과를 비교한다.
+
+False Positive
+
+False Negative
+
+Hit Rate
+
+Precision
+
+Recall
+
+를 계산하여
+
+다음 연도 Weight를 조정한다.
+
+---
+
+# 19. Output Format
+
+AI는 항상 아래 형식으로 출력한다.
+
+【검사부문】
+
+【Score】
+
+【Priority】
+
+【Confidence】
+
+【선정사유】
+
+【Evidence】
+
+【Alternative】
+
+【Counter Argument】
+
+【검사유형】
+
+【추천 검사범위】
+
+【검사착안사항】
+
+【관련 검사매뉴얼】
+
+【최종의견】
+
+---
+
+# 20. 결론
+
+AI의 역할은
+
+"검사부문을 결정하는 것"
+
+이 아니라
+
+"검사부문을 객관적으로 추천하는 것"
+
+이다.
+
+최종 의사결정은
+
+항상 검사협의회가 수행한다.
+
+AI는
+
+Explainable
+
+Repeatable
+
+Evidence-Based
+
+Risk-Based
+
+원칙을 준수하여
+
+모든 추천 결과를 생성한다.
